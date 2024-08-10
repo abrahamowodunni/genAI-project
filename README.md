@@ -13,3 +13,6 @@ Welcome to the **MCQ Generator** project! This application allows you to automat
 1. Clone this repository:
    ```bash
    git clone https://github.com/abrahamowodunni/genAI-project
+## Install the required dependencies:
+```bash
+   pip install -r requirements.txt
