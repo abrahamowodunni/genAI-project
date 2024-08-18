@@ -2,6 +2,7 @@ import os
 import json
 import traceback
 import pandas as pd
+from io import BytesIO
 from dotenv import load_dotenv
 import streamlit as st
 from langchain_community.callbacks.manager import get_openai_callback
@@ -27,10 +28,16 @@ st.title("MCQs Application Generator with LangChain 🦜⛓️")
 # Add a description and instructions for users
 st.markdown("""
     Welcome to the **MCQ Generator**! 🚀
-    
-    Upload a PDF or text file and generate multiple-choice questions (MCQs) with ease.  
-    Customize the number of questions, subject, and difficulty level to create the perfect quiz. 🎯
+
+    Whether you're a teacher looking to craft the perfect quiz or a student preparing for your next exam, this tool has you covered. 🎓
+
+    **For Teachers:** Generate tailored multiple-choice questions (MCQs) to inspire your quizzes and exams. Just upload your content, set the parameters, and let the generator do the rest! 📝
+
+    **For Students:** Use this app to create customized quizzes that match your study needs. Revise effectively and test your knowledge with questions that challenge you at just the right level. 📚
+
+    Ready to get started? Upload your file, adjust the settings, and create your quiz now! 🎯
 """)
+
 
 # Create a form using st.form
 with st.form("user_inputs"):
@@ -47,52 +54,65 @@ with st.form("user_inputs"):
     # Add a submit button
     button = st.form_submit_button("Create MCQs ✨")
 
-    # Check if the button is clicked and all fields have input
-    if button and uploaded_file is not None and mcq_count and subject and tone:
-        with st.spinner("Generating your quiz... ⏳"):
-            try:
-                text = read_file(uploaded_file)
-                # Count tokens and the cost of API call
-                with get_openai_callback() as cb:
-                    response = generate_evaluate_chain(
-                        {
-                            "text": text,
-                            "number": mcq_count,
-                            "subject": subject,
-                            "tone": tone,
-                            "response_json": json.dumps(RESPONSE_JSON)
-                        }
-                    )
+# Check if the button is clicked and all fields have input
+if button and uploaded_file is not None and mcq_count and subject and tone:
+    with st.spinner("Generating your quiz... ⏳"):
+        try:
+            text = read_file(uploaded_file)
+            # Count tokens and the cost of API call
+            with get_openai_callback() as cb:
+                response = generate_evaluate_chain(
+                    {
+                        "text": text,
+                        "number": mcq_count,
+                        "subject": subject,
+                        "tone": tone,
+                        "response_json": json.dumps(RESPONSE_JSON)
+                    }
+                )
 
-            except Exception as e:
-                traceback.print_exception(type(e), e, e.__traceback__)
-                st.error("Oops! Something went wrong while reading the file. 😕")
+        except Exception as e:
+            traceback.print_exception(type(e), e, e.__traceback__)
+            st.error("Oops! Something went wrong while reading the file. 😕")
 
-            else:
-                # Display token usage and cost
-                st.success("Quiz Generated Successfully! 🎉")
-                st.write(f"**Total Tokens Used:** {cb.total_tokens}")
-                st.write(f"**API Call Cost:** ${cb.total_cost:.4f}")
+        else:
+            # Display token usage and cost
+            st.success("Quiz Generated Successfully! 🎉")
+            st.write(f"**Total Tokens Used:** {cb.total_tokens}")
+            st.write(f"**API Call Cost:** ${cb.total_cost:.4f}")
 
-                if isinstance(response, dict):
-                    # Extract the quiz data from the response
-                    quiz = response.get("quiz", None)
-                    if quiz is not None:
-                        table_data = get_table_data(quiz)
-                        if table_data is not None:
-                            df = pd.DataFrame(table_data)
-                            df.index = df.index + 1
-                            st.table(df)
-                            # Display the review in a text area as well
-                            st.text_area(label="Quiz Review 📝", value=response["review"], height=150)
-                        else:
-                            st.error("Error in processing the table data. 😓")
+            if isinstance(response, dict):
+                # Extract the quiz data from the response
+                quiz = response.get("quiz", None)
+                if quiz is not None:
+                    table_data = get_table_data(quiz)
+                    
+                    # Validate table_data before creating the DataFrame
+                    if table_data and isinstance(table_data, list) and all(isinstance(row, dict) for row in table_data):
+                        df = pd.DataFrame(table_data)
+                        df.index = df.index + 1
+                        st.table(df)
+                        # Display the review in a text area as well
+                        st.text_area(label="Quiz Review 📝", value=response["review"], height=150)
+                        
+                        # Move the download button outside the form
+                        csv = df.to_csv(index=False).encode('utf-8')
+                        st.download_button(
+                            label="Download Quiz as CSV 📥",
+                            data=csv,
+                            file_name='quiz.csv',
+                            mime='text/csv',
+                        )
+                    else:
+                        st.error("Error in processing the table data. 😓 Invalid or empty data.")
                 else:
-                    st.write(response)
+                    st.error("Quiz data not found in the response. 😕")
+            else:
+                st.write(response)
 
 # Add a footer with contact information or credits
 st.markdown("""
     ---
-    *Developed by [Abraham Owodunni](https://www.linkedin.com/in/abrahamowodunni/) | Powered by LangChain*  
-    *Need help? [Contact us](abrahamowodunni) 💬*
+    *Developed by [Abraham Owodunni](https://github.com/abrahamowodunni/genAI-project) | Powered by LangChain*  
+    *Need help? [Contact us](mailto:abrahamowodunni@gmail.com) 💬*
 """)
