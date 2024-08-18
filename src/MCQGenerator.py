@@ -6,13 +6,16 @@ from dotenv import load_dotenv
 import PyPDF2
 
 from src.logger import logging
-from src.utils import read_file,get_tabke_data
+from src.utils import read_file,get_table_data
 
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain_openai import OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
-from langchain.callbacks import get_openai_callback
+from langchain_community.callbacks.manager import get_openai_callback
+from langchain.globals import set_verbose, get_verbose
+
+
 
 load_dotenv()
 key = os.getenv("OPENAI_API_KEY")
