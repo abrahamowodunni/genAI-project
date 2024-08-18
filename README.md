@@ -44,7 +44,8 @@ Welcome to the **MCQ Generator** project! This application allows you to automat
 3. **Download Results**
 
    Download the generated MCQs as a CSV file.
-   ![alt text](image-2.png) ![alt text](image-3.png)
+   ![alt text](image-2.png) 
+   ![alt text](image-3.png)
 
 ## 📄 Files
 
