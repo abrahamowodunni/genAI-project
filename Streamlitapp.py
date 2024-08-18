@@ -113,6 +113,6 @@ if button and uploaded_file is not None and mcq_count and subject and tone:
 # Add a footer with contact information or credits
 st.markdown("""
     ---
-    *Developed by [Abraham Owodunni](https://github.com/abrahamowodunni/genAI-project) | Powered by LangChain*  
+    *Developed by [Abraham Owodunni](https://github.com/abrahamowodunni/simple_MCQ_generator) | Powered by LangChain*  
     *Need help? [Contact us](mailto:abrahamowodunni@gmail.com) 💬*
 """)
