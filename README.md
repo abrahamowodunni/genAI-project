@@ -18,6 +18,7 @@ Welcome to the **MCQ Generator** project! This application allows you to automat
 ## Install the required dependencies:
 ```bash
    pip install -r requirements.txt
+```
 
 
 
